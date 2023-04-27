@@ -1,0 +1,153 @@
+import java.util.*;
+
+public class MemoryManagementSystem {
+    private int memorySize;
+    private int[] allocationTable;
+    private int wastedMemory;
+
+    public MemoryManagementSystem(int memorySize) {
+        this.memorySize = memorySize;
+        this.allocationTable = new int[memorySize];
+        this.wastedMemory = memorySize;
+    }
+
+    public int allocateMemoryFirstFit(int size) {
+        int startIndex = -1;
+        for (int i = 0; i < memorySize; i++) {
+            if (allocationTable[i] == 0) {
+                int freeBlock = 0;
+                for (int j = i; j < memorySize && allocationTable[j] == 0; j++) {
+                    freeBlock++;
+                    if (freeBlock == size) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+                if (startIndex != -1) {
+                    break;
+                }
+            }
+        }
+        if (startIndex != -1) {
+            for (int i = startIndex; i < startIndex + size; i++) {
+                allocationTable[i] = 1;
+            }
+            wastedMemory -= size;
+        }
+        return startIndex;
+    }
+
+    public int allocateMemoryBestFit(int size) {
+        int startIndex = -1;
+        int minWaste = memorySize;
+        for (int i = 0; i < memorySize; i++) {
+            if (allocationTable[i] == 0) {
+                int freeBlock = 0;
+                for (int j = i; j < memorySize && allocationTable[j] == 0; j++) {
+                    freeBlock++;
+                    if (freeBlock == size) {
+                        int waste = freeBlock - size;
+                        if (waste < minWaste) {
+                            minWaste = waste;
+                            startIndex = i;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (startIndex != -1) {
+            for (int i = startIndex; i < startIndex + size; i++) {
+                allocationTable[i] = 1;
+            }
+            wastedMemory -= size;
+        }
+        return startIndex;
+    }
+
+    public int allocateMemoryWorstFit(int size) {
+        int startIndex = -1;
+        int maxWaste = 0;
+        for (int i = 0; i < memorySize; i++) {
+            if (allocationTable[i] == 0) {
+                int freeBlock = 0;
+                for (int j = i; j < memorySize && allocationTable[j] == 0; j++) {
+                    freeBlock++;
+                    if (freeBlock == size) {
+                        int waste = freeBlock - size;
+                        if (waste > maxWaste) {
+                            maxWaste = waste;
+                            startIndex = i;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (startIndex != -1) {
+            for (int i = startIndex; i < startIndex + size; i++) {
+                allocationTable[i] = 1;
+            }
+            wastedMemory -= size;
+        }
+        return startIndex;
+    }
+
+    public void deallocateMemory(int startIndex, int size) {
+        for (int i = startIndex; i < startIndex + size; i++) {
+            allocationTable[i] = 0;
+        }
+        wastedMemory += size;
+    }
+
+    public int calculateFragmentation() {
+        int fragmentation = 0;
+        int freeBlock = 0;
+        for (int i = 0; i < memorySize; i++) {
+            if (allocationTable[i] == 0) {
+                freeBlock++;
+            } else {
+                if (freeBlock > 0) {
+                    fragmentation += freeBlock;
+                    freeBlock = 0;
+                }
+            }
+        }
+        if (freeBlock > 0) {
+            fragmentation += freeBlock;
+        }
+        return fragmentation;
+    }
+
+    public int calculateWastedMemory() {
+        return wastedMemory;
+    }
+
+    public void printAllocationTable() {
+        System.out.println("Allocation Table:");
+        for (int i = 0; i < memorySize; i++) {
+            System.out.print(allocationTable[i] + " ");
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        MemoryManagementSystem mms = new MemoryManagementSystem(1000);
+
+        int startIndex1 = mms.allocateMemoryFirstFit(200);
+        int startIndex2 = mms.allocateMemoryBestFit(300);
+        int startIndex3 = mms.allocateMemoryWorstFit(400);
+
+        mms.printAllocationTable();
+
+        mms.deallocateMemory(startIndex2, 300);
+
+        mms.printAllocationTable();
+
+        int fragmentation = mms.calculateFragmentation();
+        int wastedMemory = mms.calculateWastedMemory();
+
+        System.out.println("Fragmentation: " + fragmentation);
+        System.out.println("Wasted Memory: " + wastedMemory);
+    }
+}
